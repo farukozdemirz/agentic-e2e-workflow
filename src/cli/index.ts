@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { createLLMProvider } from "../ai";
 
 const helpContent = `
