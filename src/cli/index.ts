@@ -10,6 +10,8 @@ import { ObservationAgent } from "../observation/ObservationAgent";
 import { writeObservations } from "../flow/observationReporter";
 import { ReasoningAgent } from "../reasoning/ReasoningAgent";
 import { writeReasoning } from "../reasoning/reasoningReporter";
+import { writeSummaryJson } from "../reporting/summaryReporter";
+import { writeMarkdownReport } from "../reporting/markdownReporter";
 
 const helpContent = `
 agentic-e2e-workflow (qg)
@@ -30,6 +32,7 @@ Examples:
   qg llm ping
   qg run smoke --url https://example.com
   qg run smoke --url https://example.com --debug
+  qg run --flow <name> Generates report.md and summary.json under artifacts.
 `;
 
 async function main() {
@@ -123,6 +126,24 @@ async function main() {
     console.log(
       `Reasoning result: ${reasoning.status} (confidence: ${reasoning.confidence})`
     );
+
+    writeSummaryJson(baseDir, {
+      runId,
+      flow,
+      status,
+      reasoning,
+      observations: observationAgent.getObservations(),
+    });
+
+    writeMarkdownReport(baseDir, {
+      runId,
+      flow,
+      status,
+      reasoning,
+      observations: observationAgent.getObservations(),
+    });
+
+    console.log(`Report generated: ${baseDir}/report.md`);
     return;
   }
 

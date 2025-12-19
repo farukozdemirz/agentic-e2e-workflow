@@ -7,7 +7,7 @@ const flows: Record<string, FlowDefinition> = {
 
 export function getFlow(name: string): FlowDefinition {
   const flow = flows[name];
-  console.log({ getFlow: name });
+
   if (!flow) {
     throw new Error(`Flow not found: ${name}`);
   }
