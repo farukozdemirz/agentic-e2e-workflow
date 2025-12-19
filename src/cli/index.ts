@@ -3,7 +3,9 @@ import { createLLMProvider } from "../ai";
 import { runSmoke } from "../browser";
 import { getFlow } from "../flow/registry";
 import { BrowserManager } from "../browser/BrowserManager";
-import { executeStep } from "../flow/executor";
+import { executeStepWithArtifacts } from "../flow/executor";
+import { createRunContext } from "../flow/runContext";
+import { writeFlowMeta } from "../flow/flowReporter";
 
 const helpContent = `
 agentic-e2e-workflow (qg)
@@ -57,22 +59,31 @@ async function main() {
     console.log("Response:", result.content.trim());
     return;
   }
+
   if (args[0] === "run" && args[1] === "--flow") {
     const flowName = args[2];
-    if (!flowName) {
-      throw new Error("Flow name is required");
-    }
+    if (!flowName) throw new Error("Flow name is required");
 
     const flow = getFlow(flowName);
+    const { runId, baseDir } = createRunContext();
+
     const manager = new BrowserManager();
     const page = await manager.launch({ headless: true });
 
-    for (const step of flow.steps) {
-      await executeStep(page, step);
+    try {
+      for (let i = 0; i < flow.steps.length; i++) {
+        await executeStepWithArtifacts(page, baseDir, flow.steps[i], i);
+      }
+
+      writeFlowMeta(baseDir, flow, "completed");
+      console.log(`Flow "${flow.name}" completed (runId: ${runId})`);
+    } catch (err) {
+      writeFlowMeta(baseDir, flow, "failed");
+      throw err;
+    } finally {
+      await manager.close();
     }
 
-    await manager.close();
-    console.log(`Flow "${flow.name}" completed`);
     return;
   }
 
