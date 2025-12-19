@@ -1,12 +1,14 @@
 import { Page } from "playwright";
 import { FlowStep } from "./types";
 import { writeStepArtifacts } from "./artifacts";
+import { ObservationAgent } from "../observation/ObservationAgent";
 
 export async function executeStepWithArtifacts(
   page: Page,
   baseDir: string,
   step: FlowStep,
-  index: number
+  index: number,
+  observationAgent: ObservationAgent
 ) {
   // Step execute
   switch (step.type) {
@@ -28,6 +30,8 @@ export async function executeStepWithArtifacts(
       break;
   }
 
+  // DOM snapshot
+  await observationAgent.captureDom(page);
   // Artifact write
   await writeStepArtifacts(page, baseDir, step, index);
 }

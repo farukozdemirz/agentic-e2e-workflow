@@ -6,6 +6,8 @@ import { BrowserManager } from "../browser/BrowserManager";
 import { executeStepWithArtifacts } from "../flow/executor";
 import { createRunContext } from "../flow/runContext";
 import { writeFlowMeta } from "../flow/flowReporter";
+import { ObservationAgent } from "../observation/ObservationAgent";
+import { writeObservations } from "../flow/observationReporter";
 
 const helpContent = `
 agentic-e2e-workflow (qg)
@@ -68,20 +70,43 @@ async function main() {
     const { runId, baseDir } = createRunContext();
 
     const manager = new BrowserManager();
+    const observationAgent = new ObservationAgent();
+
     const page = await manager.launch({ headless: true });
+    observationAgent.attach(page);
+
+    let status: "completed" | "failed" = "completed";
 
     try {
       for (let i = 0; i < flow.steps.length; i++) {
-        await executeStepWithArtifacts(page, baseDir, flow.steps[i], i);
+        const step = flow.steps[i];
+
+        console.log(`→ Step ${i + 1}/${flow.steps.length}: ${step.type}`);
+
+        await executeStepWithArtifacts(
+          page,
+          baseDir,
+          step,
+          i,
+          observationAgent
+        );
       }
 
-      writeFlowMeta(baseDir, flow, "completed");
-      console.log(`Flow "${flow.name}" completed (runId: ${runId})`);
     } catch (err) {
-      writeFlowMeta(baseDir, flow, "failed");
+      status = "failed";
       throw err;
     } finally {
+      writeObservations(baseDir, observationAgent.getObservations());
+      writeFlowMeta(baseDir, flow, status);
       await manager.close();
+    }
+
+    if (status === "completed") {
+      console.log(
+        `Flow "${flow.name}" completed successfully (runId: ${runId})`
+      );
+    } else {
+      console.log(`Flow "${flow.name}" failed (runId: ${runId})`);
     }
 
     return;
