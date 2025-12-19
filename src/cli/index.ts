@@ -8,6 +8,8 @@ import { createRunContext } from "../flow/runContext";
 import { writeFlowMeta } from "../flow/flowReporter";
 import { ObservationAgent } from "../observation/ObservationAgent";
 import { writeObservations } from "../flow/observationReporter";
+import { ReasoningAgent } from "../reasoning/ReasoningAgent";
+import { writeReasoning } from "../reasoning/reasoningReporter";
 
 const helpContent = `
 agentic-e2e-workflow (qg)
@@ -91,7 +93,6 @@ async function main() {
           observationAgent
         );
       }
-
     } catch (err) {
       status = "failed";
       throw err;
@@ -109,6 +110,19 @@ async function main() {
       console.log(`Flow "${flow.name}" failed (runId: ${runId})`);
     }
 
+    const llm = createLLMProvider();
+    const reasoningAgent = new ReasoningAgent(llm);
+    const reasoning = await reasoningAgent.evaluate({
+      flow,
+      observations: observationAgent.getObservations(),
+      runId,
+    });
+
+    writeReasoning(baseDir, reasoning);
+
+    console.log(
+      `Reasoning result: ${reasoning.status} (confidence: ${reasoning.confidence})`
+    );
     return;
   }
 

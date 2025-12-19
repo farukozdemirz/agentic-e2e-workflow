@@ -1,9 +1,10 @@
 import { FlowDefinition } from "../types";
 
 export const addToCartFlow: FlowDefinition = {
-  name: "add-to-cart",
+  name: "example-smoke",
   version: "1.0.0",
-  criticality: "blocking",
+  criticality: "info",
+  intent: "Verify that a static example page loads correctly for smoke testing",
   steps: [
     {
       type: "goto",

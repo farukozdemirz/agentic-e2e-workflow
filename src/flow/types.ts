@@ -23,5 +23,6 @@ export type FlowDefinition = {
   name: string;
   version: string;
   criticality: FlowCriticality;
+  intent?: string;
   steps: FlowStep[];
 };
