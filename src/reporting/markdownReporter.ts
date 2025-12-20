@@ -14,12 +14,13 @@ function fmtConfidence(c: number) {
 }
 
 export function writeMarkdownReport(baseDir: string, input: ReportingInput) {
-  const { flow, reasoning, status, runId } = input;
+  const { flow, reasoning, status, runId, environment } = input;
 
   const md = `# Agentic E2E Quality Guardian Report
 
 ## Run
 - **Run ID:** \`${runId}\`
+- **Environment:** \`${environment}\`
 - **Flow:** \`${flow.name}\` (v${flow.version})
 - **Criticality:** \`${flow.criticality}\`
 - **Execution:** \`${status}\`

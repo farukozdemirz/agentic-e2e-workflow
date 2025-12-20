@@ -1,3 +1,4 @@
+import { Environment } from "../config/environment";
 import { FlowDefinition } from "../flow/types";
 import { Observation } from "../observation/types";
 import { ReasoningResult } from "../reasoning/types";
@@ -19,6 +20,7 @@ export type RunSummary = {
     domSnapshots: number;
   };
   createdAt: string;
+  environment?: Environment;
 };
 
 export type ReportingInput = {
@@ -27,4 +29,5 @@ export type ReportingInput = {
   status: "completed" | "failed";
   reasoning: ReasoningResult;
   observations: Observation[];
+  environment?: Environment;
 };

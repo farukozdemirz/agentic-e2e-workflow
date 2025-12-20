@@ -52,9 +52,7 @@ const runFlowCommand = async (args: string[]) => {
   const headless = !debug;
 
   const flow = getFlow(flowName);
-  const { runId, baseDir, attempts } = createRunContext();
-
-  console.log({ runId, baseDir, attempts, flowName, flow });
+  const { runId, baseDir, attempts, environment } = createRunContext();
 
   console.log(`▶️ Starting flow "${flow.name}" (runId: ${runId})`);
 
@@ -122,11 +120,13 @@ const runFlowCommand = async (args: string[]) => {
           status: executionStatus,
           reasoning: reasoningResult,
           observations: deps.observationAgent.getObservations(),
+          environment,
         });
 
         writeMarkdownReport(baseDir, {
           runId,
           flow,
+          environment,
           status: executionStatus,
           reasoning: reasoningResult,
           observations: deps.observationAgent.getObservations(),

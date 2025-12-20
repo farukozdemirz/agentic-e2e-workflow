@@ -43,6 +43,7 @@ export function writeSummaryJson(baseDir: string, input: ReportingInput) {
     reasoning: input.reasoning,
     signals: countSignals(input.observations),
     createdAt: new Date().toISOString(),
+    environment: input.environment,
   };
 
   writeFileSync(

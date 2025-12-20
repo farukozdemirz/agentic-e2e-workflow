@@ -4,6 +4,7 @@ export type FlowStep =
   | {
       type: "goto";
       url: string;
+      path?: string;
     }
   | {
       type: "click";

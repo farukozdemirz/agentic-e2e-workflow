@@ -2,6 +2,7 @@ import { Page } from "playwright";
 import { FlowStep } from "./types";
 import { writeStepArtifacts } from "./artifacts";
 import { ObservationAgent } from "../observation/ObservationAgent";
+import { getBaseUrl } from "../config/environment";
 
 export async function executeStepWithArtifacts(
   page: Page,
@@ -13,7 +14,14 @@ export async function executeStepWithArtifacts(
   // Step execute
   switch (step.type) {
     case "goto":
-      await page.goto(step.url, { waitUntil: "networkidle" });
+      //prettier-ignore
+      const targetUrl = step.url ?? (step.path ? `${getBaseUrl()}${step.path}` : null);
+
+      if (!targetUrl) {
+        throw new Error("Goto step requires either url or path");
+      }
+
+      await page.goto(targetUrl, { waitUntil: "networkidle" });
       break;
     case "click":
       await page.click(step.selector);
