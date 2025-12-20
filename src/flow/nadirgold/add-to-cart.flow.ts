@@ -8,7 +8,7 @@ export const nadirgoldAddToCartFlow: FlowDefinition = {
   steps: [
     {
       type: "goto",
-      path: "/nadirgold-1-gr-kulce-altin",
+      path: "/nadirgold-100-gr-gumus-kulce",
     },
     {
       type: "click",
@@ -16,8 +16,13 @@ export const nadirgoldAddToCartFlow: FlowDefinition = {
       text: "Sepete Ekle",
     },
     {
-      type: "assertVisible",
-      selector: "button",
+      type: "waitForApi",
+      urlContains: "/basket/add",
+      status: 200,
+    },
+    {
+      type: "waitForVisible",
+      selector: "a",
       text: "Sepete Git",
     },
   ],

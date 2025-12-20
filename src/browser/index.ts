@@ -12,7 +12,7 @@ export async function runSmoke(url: string, headless: boolean) {
   await page.goto(url, { waitUntil: "networkidle" });
 
   const screenshotPath = join(artifactsDir, "screenshot.png");
-  await page.screenshot({ path: screenshotPath, fullPage: true });
+  await page.screenshot({ path: screenshotPath, fullPage: false });
 
   const meta = {
     url,

@@ -54,8 +54,8 @@ const runFlowCommand = async (args: string[]) => {
   const headless = !debug;
 
   const flow = getFlow(flowName);
-  const { runId, baseDir, attempts, environment } = createRunContext();
-
+  const { runId, baseDir, attempts: count, environment } = createRunContext();
+  let attempts = count;
   console.log(`▶️ Starting flow "${flow.name}" (runId: ${runId})`);
 
   const deps: FlowRunDeps = {
@@ -96,8 +96,7 @@ const runFlowCommand = async (args: string[]) => {
     }
 
     console.log(`🔁 Retry triggered: ${retryDecision.reason}`);
-    (attempts as any) &&
-      ((attempts as any).value = ((attempts as any).value ?? 1) + 1);
+    attempts += 1;
 
     await simpleRetry(page);
 
@@ -193,12 +192,15 @@ async function runAttempt(input: {
     executionStatus = "failed";
     failedStep = {
       stepIndex: inferFailedStepIndex(err) ?? -1,
-      stepType: inferFailedStepType(err) ?? 'unknown',
+      stepType: inferFailedStepType(err) ?? "unknown",
       name: err?.name,
       message: err?.message ?? String(err),
       stack: err?.stack,
-    }
-    console.error(`❌ ${label} execution failed at step ${failedStep.stepIndex}`, err)
+    };
+    console.error(
+      `❌ ${label} execution failed at step ${failedStep.stepIndex}`,
+      err
+    );
   }
 
   const observations = deps.observationAgent.getObservations();

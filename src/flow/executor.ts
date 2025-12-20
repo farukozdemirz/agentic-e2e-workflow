@@ -26,7 +26,13 @@ export async function executeStepWithArtifacts(
         await page.goto(targetUrl, { waitUntil: "networkidle" });
         break;
       case "click":
-        await page.click(step.selector);
+        let locator = page.locator(step.selector);
+
+        if (step.text) {
+          locator = locator.filter({ hasText: step.text });
+        }
+
+        await locator.first().click();
         break;
       case "assertText": {
         const content = await page.content();
@@ -35,6 +41,35 @@ export async function executeStepWithArtifacts(
         }
         break;
       }
+      case "waitForVisible":
+        let waitedLocator = page.locator(step.selector);
+        if (step.text) {
+          waitedLocator = waitedLocator.filter({ hasText: step.text });
+        }
+        await waitedLocator
+          .first()
+          .waitFor({ state: "visible", timeout: step.timeoutMs ?? 10000 });
+        break;
+      case "waitForApi":
+        const startedAt = Date.now();
+
+        const response = await page.waitForResponse(
+          (res) => {
+            if (!res.url().includes(step.urlContains)) return false;
+            if (step.status && res.status() !== step.status) return false;
+            return true;
+          },
+          { timeout: step.timeoutMs ?? 10000 }
+        );
+
+        const elapsed = Date.now() - startedAt;
+
+        observationAgent.recordApiWait({
+          url: response.url(),
+          status: response.status(),
+          durationMs: elapsed,
+        });
+        break;
       case "wait":
         await page.waitForTimeout(step.ms);
         break;
@@ -43,6 +78,8 @@ export async function executeStepWithArtifacts(
     // DOM snapshot
     await observationAgent.captureDom(page);
     // Artifact write
+
+    // await page.waitForTimeout(500);
     await writeStepArtifacts(page, baseDir, step, index);
   } catch (error: any) {
     throw new StepExecutionError({

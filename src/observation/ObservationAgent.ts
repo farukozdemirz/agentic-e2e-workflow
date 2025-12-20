@@ -6,10 +6,10 @@ export class ObservationAgent {
 
   attach(page: Page) {
     page.on("console", (msg) => {
-      if (msg.type() === "error" || msg.type() === "warning") {
+      if (msg.type() === "error") {
         this.observations.push({
           type: "console",
-          level: msg.type() as "error" | "warning",
+          level: msg.type() as "error",
           message: msg.text(),
         });
       }
@@ -51,6 +51,15 @@ export class ObservationAgent {
     this.observations.push({
       type: "dom",
       snapshot,
+    });
+  }
+
+  recordApiWait(info: { url: string; status: number; durationMs: number }) {
+    this.observations.push({
+      type: "api-wait",
+      url: info.url,
+      status: info.status,
+      durationMs: info.durationMs,
     });
   }
 

@@ -19,7 +19,7 @@ export async function writeStepArtifacts(
 
   await page.screenshot({
     path: join(stepDir, "screenshot.png"),
-    fullPage: true,
+    fullPage: false,
   });
 
   const meta = {

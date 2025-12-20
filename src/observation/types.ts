@@ -10,6 +10,13 @@ export type NetworkError = {
   status: number;
 };
 
+export type ApiWait = {
+  type: "api-wait";
+  url: string;
+  status: number;
+  durationMs: number;
+};
+
 export type DomSnapshot = {
   type: "dom";
   snapshot: {
@@ -22,4 +29,4 @@ export type DomSnapshot = {
   };
 };
 
-export type Observation = ConsoleError | NetworkError | DomSnapshot;
+export type Observation = ConsoleError | NetworkError | DomSnapshot | ApiWait;
