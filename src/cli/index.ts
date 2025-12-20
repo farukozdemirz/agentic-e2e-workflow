@@ -14,6 +14,7 @@ import { writeSummaryJson } from "../reporting/summaryReporter";
 import { writeMarkdownReport } from "../reporting/markdownReporter";
 import { simpleRetry } from "../retry/healing/simpleRetry";
 import { decideRetry } from "../retry/retryPolicy";
+import { ExecutionSummary, StepExecutionError } from "../flow/executionTypes";
 
 const helpContent = `
 agentic-e2e-workflow (qg)
@@ -67,6 +68,7 @@ const runFlowCommand = async (args: string[]) => {
 
   let executionStatus: ExecutionStatus = "completed";
   let reasoningResult: any = null;
+  let executionSummary = { ok: true } as ExecutionSummary;
 
   try {
     // Attempt #1
@@ -76,9 +78,11 @@ const runFlowCommand = async (args: string[]) => {
       baseDir,
       deps,
       label: "attempt-1",
+      runId,
     });
     executionStatus = attempt1.executionStatus;
     reasoningResult = attempt1.reasoning;
+    executionSummary = attempt1.execution;
 
     const retryDecision = decideRetry({
       reasoning: reasoningResult,
@@ -102,9 +106,11 @@ const runFlowCommand = async (args: string[]) => {
       baseDir,
       deps,
       label: "attempt-2",
+      runId,
     });
     executionStatus = attempt2.executionStatus;
     reasoningResult = attempt2.reasoning;
+    executionSummary = attempt2.execution;
 
     console.log(
       `🧠 Post-retry result: ${reasoningResult.status} (confidence: ${reasoningResult.confidence})`
@@ -119,6 +125,7 @@ const runFlowCommand = async (args: string[]) => {
           flow,
           status: executionStatus,
           reasoning: reasoningResult,
+          execution: executionSummary,
           observations: deps.observationAgent.getObservations(),
           environment,
         });
@@ -127,6 +134,7 @@ const runFlowCommand = async (args: string[]) => {
           runId,
           flow,
           environment,
+          execution: executionSummary,
           status: executionStatus,
           reasoning: reasoningResult,
           observations: deps.observationAgent.getObservations(),
@@ -149,18 +157,21 @@ async function runAttempt(input: {
   baseDir: string;
   deps: FlowRunDeps;
   label: string;
+  runId: string;
 }): Promise<{
   executionStatus: ExecutionStatus;
+  execution: ExecutionSummary;
   observations: any[];
   reasoning: any;
 }> {
-  const { page, flow, baseDir, deps, label } = input;
+  const { page, flow, baseDir, deps, label, runId } = input;
 
   deps.observationAgent.reset();
 
   console.log(`🧪 Running ${label}`);
 
   let executionStatus: ExecutionStatus = "completed";
+  let failedStep: StepExecutionError | undefined;
 
   try {
     for (let i = 0; i < flow.steps.length; i++) {
@@ -168,6 +179,7 @@ async function runAttempt(input: {
       console.log(
         `→ ${label} step ${i + 1}/${flow.steps.length}: ${step.type}`
       );
+
       await executeStepWithArtifacts(
         page,
         baseDir,
@@ -176,8 +188,15 @@ async function runAttempt(input: {
         deps.observationAgent
       );
     }
-  } catch (err) {
+  } catch (err: any) {
     executionStatus = "failed";
+    failedStep = {
+      stepIndex: inferFailedStepIndex(err) ?? -1,
+      stepType: inferFailedStepType(flow, err) ?? "unknown",
+      name: err?.name,
+      message: String(err?.message ?? err),
+      stack: err?.stack,
+    };
     console.error(`❌ ${label} execution failed:`, err);
   }
 
@@ -189,7 +208,11 @@ async function runAttempt(input: {
   const reasoning = await deps.reasoningAgent.evaluate({
     flow,
     observations,
-    runId: extractRunIdFromBaseDir(baseDir),
+    runId,
+    execution: {
+      ok: executionStatus === "completed",
+      failedStep,
+    },
   });
 
   writeReasoning(baseDir, reasoning);
@@ -198,7 +221,12 @@ async function runAttempt(input: {
     `🧠 ${label} result: ${reasoning.status} (confidence: ${reasoning.confidence})`
   );
 
-  return { executionStatus, observations, reasoning };
+  return {
+    executionStatus,
+    execution: { ok: executionStatus === "completed", failedStep },
+    observations,
+    reasoning,
+  };
 }
 
 function parseFlowName(args: string[]): string | null {
@@ -256,6 +284,16 @@ async function main() {
   }
 
   console.log("Agentic E2E Workflow CLI started");
+}
+function inferFailedStepIndex(err: any): number | null {
+  // v0: executor zaten stepIndex üzerinden çağrılıyor.
+  // Eğer ileride error’a stepIndex eklersek burayı kullanacağız.
+  return null;
+}
+
+function inferFailedStepType(flow: any, err: any): string | null {
+  // v0 fallback: bilinmiyor
+  return null;
 }
 
 main().catch((err) => {

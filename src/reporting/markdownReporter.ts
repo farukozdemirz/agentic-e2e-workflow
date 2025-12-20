@@ -1,6 +1,7 @@
 import { writeFileSync } from "fs";
 import { join } from "path";
 import { ReportingInput } from "./types";
+import { computeFinalVerdict } from "./finalVerdict";
 
 function emoji(status: string) {
   if (status === "ok") return "✅";
@@ -14,16 +15,26 @@ function fmtConfidence(c: number) {
 }
 
 export function writeMarkdownReport(baseDir: string, input: ReportingInput) {
-  const { flow, reasoning, status, runId, environment } = input;
+  const { flow, reasoning, status, runId, environment, execution } = input;
+  const finalVerdict = computeFinalVerdict({ execution, reasoning });
 
+  // prettier-ignore
+  const executionLine = input.execution.ok ? "✅ ok" : `❌ failed${input.execution.failedStep ? ` (step ${input.execution.failedStep.stepIndex + 1}: ${input.execution.failedStep.stepType})`: ""}`;
   const md = `# Agentic E2E Quality Guardian Report
 
 ## Run
-- **Run ID:** \`${runId}\`
-- **Environment:** \`${environment}\`
-- **Flow:** \`${flow.name}\` (v${flow.version})
-- **Criticality:** \`${flow.criticality}\`
-- **Execution:** \`${status}\`
+- **Run ID:** \`${input.runId}\`
+- **Environment:** \`${input.environment}\`
+- **Flow:** \`${input.flow.name}\` (v${input.flow.version})
+- **Criticality:** \`${input.flow.criticality}\`
+
+## Result
+- **Execution:** ${executionLine}
+- **AI Assessment:** \`${input.reasoning.status}\` (confidence: ${input.reasoning.confidence})
+- **Final Verdict:** \`${finalVerdict.finalStatus}\` — ${finalVerdict.reason}
+
+## Summary
+${input.reasoning.summary}
 
 ## Verdict
 - **Status:** ${emoji(reasoning.status)} \`${reasoning.status}\`
@@ -33,18 +44,21 @@ export function writeMarkdownReport(baseDir: string, input: ReportingInput) {
 ${reasoning.summary}
 
 ## Root Cause Hypotheses
-${(reasoning.rootCauseHypotheses?.length
-  ? reasoning.rootCauseHypotheses
+${(input.reasoning.rootCauseHypotheses?.length
+  ? input.reasoning.rootCauseHypotheses
   : ["(none)"]
 )
-  .map((x) => `- ${x}`)
+  .map((x: string) => `- ${x}`)
   .join("\n")}
 
 ## Suggested Next Actions
-${(reasoning.suggestedActions?.length ? reasoning.suggestedActions : ["(none)"])
-  .map((x) => `- ${x}`)
+${(input.reasoning.suggestedActions?.length
+  ? input.reasoning.suggestedActions
+  : ["(none)"]
+)
+  .map((x: string) => `- ${x}`)
   .join("\n")}
-
+  
 ## Artifacts
 - \`flow.json\`
 - \`observations.json\`

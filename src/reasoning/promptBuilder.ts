@@ -1,15 +1,21 @@
+import { ExecutionSummary } from "../flow/executionTypes";
 import { FlowDefinition } from "../flow/types";
 import { Observation } from "../observation/types";
 
 export function buildReasoningPrompt(input: {
   flow: FlowDefinition;
   observations: Observation[];
-  runMeta: {
-    runId: string;
-  };
+  execution: ExecutionSummary;
+  runMeta: { runId: string };
 }) {
   return `
-You are an AI quality guardian for web applications.
+You are an AI quality guardian agent tasked with analyzing the execution of a web application flow and producing a structured, evidence-based judgment.
+
+RUN
+- runId: ${input.runMeta.runId}
+
+EXECUTION (deterministic):
+${JSON.stringify(input.execution, null, 2)}
 
 FLOW
 - name: ${input.flow.name}
@@ -27,12 +33,20 @@ Evaluate the flow execution and decide:
 - rootCauseHypotheses: list
 - suggestedActions: list
 
-RULES
-- "broken": critical flow cannot complete or severe errors (5xx, auth blocks, missing CTAs)
-- "degraded": flow completes but with warnings (console errors, slow responses, UI anomalies)
+Rules:
+- status MUST be one of: ok | degraded | broken
+- If execution.ok is false → status MUST be "broken" and focus on root cause and next actions.
+- "broken": flow cannot complete or critical step failed
+- "degraded": flow completes but UX or technical warnings exist
 - "ok": no meaningful issues
 
-Return STRICT JSON with fields:
-status, confidence, summary, rootCauseHypotheses, suggestedActions
+Return STRICT JSON ONLY with:
+{
+  "status": "ok | degraded | broken",
+  "confidence": number,
+  "summary": string,
+  "rootCauseHypotheses": string[],
+  "suggestedActions": string[]
+}
 `;
 }

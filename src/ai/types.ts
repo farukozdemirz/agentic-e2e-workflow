@@ -1,13 +1,9 @@
+import { ReasoningStatus } from "../reasoning/types";
+
 export enum MessageRole {
   SYSTEM = "system",
   USER = "user",
   ASSISTANT = "assistant",
-}
-
-export enum ReasoningStatus {
-  OK = "ok",
-  DEGRADED = "degraded",
-  BROKEN = "broken",
 }
 
 export type LLMMessage = {

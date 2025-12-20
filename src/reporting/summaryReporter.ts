@@ -2,6 +2,7 @@ import { writeFileSync } from "fs";
 import { join } from "path";
 import { Observation } from "../observation/types";
 import { ReportingInput, RunSummary } from "./types";
+import { computeFinalVerdict } from "./finalVerdict";
 
 function countSignals(observations: Observation[]) {
   let consoleErrors = 0;
@@ -32,18 +33,25 @@ function countSignals(observations: Observation[]) {
 }
 
 export function writeSummaryJson(baseDir: string, input: ReportingInput) {
+  const finalVerdict = computeFinalVerdict({
+    execution: input.execution,
+    reasoning: input.reasoning,
+  });
+
   const summary: RunSummary = {
     runId: input.runId,
+    environment: input.environment,
     flow: {
       name: input.flow.name,
       version: input.flow.version,
       criticality: input.flow.criticality,
     },
-    status: input.status,
+    execution: input.execution,
     reasoning: input.reasoning,
+    finalVerdict,
+    status: input.status,
     signals: countSignals(input.observations),
     createdAt: new Date().toISOString(),
-    environment: input.environment,
   };
 
   writeFileSync(
