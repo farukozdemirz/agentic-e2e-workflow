@@ -4,6 +4,8 @@ import { writeStepArtifacts } from "./artifacts";
 import { ObservationAgent } from "../observation/ObservationAgent";
 import { getBaseUrl } from "../config/environment";
 import { StepExecutionError } from "./errors";
+import { resolveSemanticClick } from "../interaction/resolveSemanticClick";
+import { logger } from "../infra/logger";
 
 export async function executeStepWithArtifacts(
   page: Page,
@@ -26,17 +28,32 @@ export async function executeStepWithArtifacts(
         await page.goto(targetUrl, { waitUntil: "networkidle" });
         break;
       case "click":
-        let locator = page.locator(step.selector);
+        if (step.intent) {
+          const resolution = await resolveSemanticClick(page, step.intent);
 
-        if (step.text) {
-          locator = locator.filter({ hasText: step.text });
+          logger.debug("Semantic click resolution", {
+            intent: step.intent,
+            selected: resolution.selected.text,
+            confidence: resolution.confidence,
+            reasons: resolution.selected.reasons,
+          });
+
+          await resolution.selected.locator.click();
+          break;
         }
 
-        await locator.first().click();
-        break;
+        if (step.selector && step.text) {
+          await page
+            .locator(step.selector)
+            .filter({ hasText: step.text })
+            .first()
+            .click();
+          break;
+        }
+
       case "assertText": {
         const content = await page.content();
-        if (!content.includes(step.text)) {
+        if (!content.includes(step?.text ?? "")) {
           throw new Error(`Assertion failed: "${step.text}" not found`);
         }
         break;

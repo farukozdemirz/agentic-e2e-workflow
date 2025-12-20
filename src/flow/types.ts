@@ -11,10 +11,19 @@ export type GotoStep = BaseStep & {
   path?: string;
 };
 
-export type ClickStep = BaseStep & {
+export type SemanticIntent =
+  | "add-to-cart"
+  | "go-to-cart"
+  | "checkout"
+  | "login"
+  | "submit";
+
+export type ClickStep = {
   type: "click";
-  selector: string;
+  selector?: string;
   text?: string;
+  intent?: SemanticIntent;
+  fallbackSelectors?: string[];
 };
 
 export type AssertTextStep = BaseStep & {

@@ -12,8 +12,7 @@ export const nadirgoldAddToCartFlow: FlowDefinition = {
     },
     {
       type: "click",
-      selector: "button",
-      text: "Sepete Ekle",
+      intent: "add-to-cart",
     },
     {
       type: "waitForApi",
