@@ -14,7 +14,8 @@ import { writeSummaryJson } from "../reporting/summaryReporter";
 import { writeMarkdownReport } from "../reporting/markdownReporter";
 import { simpleRetry } from "../retry/healing/simpleRetry";
 import { decideRetry } from "../retry/retryPolicy";
-import { ExecutionSummary, StepExecutionError } from "../flow/executionTypes";
+import { ExecutionSummary } from "../flow/executionTypes";
+import { StepExecutionError } from "../flow/errors";
 
 const helpContent = `
 agentic-e2e-workflow (qg)
@@ -192,12 +193,12 @@ async function runAttempt(input: {
     executionStatus = "failed";
     failedStep = {
       stepIndex: inferFailedStepIndex(err) ?? -1,
-      stepType: inferFailedStepType(flow, err) ?? "unknown",
+      stepType: inferFailedStepType(err) ?? 'unknown',
       name: err?.name,
-      message: String(err?.message ?? err),
+      message: err?.message ?? String(err),
       stack: err?.stack,
-    };
-    console.error(`❌ ${label} execution failed:`, err);
+    }
+    console.error(`❌ ${label} execution failed at step ${failedStep.stepIndex}`, err)
   }
 
   const observations = deps.observationAgent.getObservations();
@@ -285,14 +286,18 @@ async function main() {
 
   console.log("Agentic E2E Workflow CLI started");
 }
-function inferFailedStepIndex(err: any): number | null {
-  // v0: executor zaten stepIndex üzerinden çağrılıyor.
-  // Eğer ileride error’a stepIndex eklersek burayı kullanacağız.
+
+function inferFailedStepIndex(err: unknown): number | null {
+  if (err instanceof StepExecutionError) {
+    return err.stepIndex;
+  }
   return null;
 }
 
-function inferFailedStepType(flow: any, err: any): string | null {
-  // v0 fallback: bilinmiyor
+function inferFailedStepType(err: unknown): string | null {
+  if (err instanceof StepExecutionError) {
+    return err.stepType;
+  }
   return null;
 }
 

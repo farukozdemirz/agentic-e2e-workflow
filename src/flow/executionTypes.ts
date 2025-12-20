@@ -1,10 +1,4 @@
-export type StepExecutionError = {
-  stepIndex: number;
-  stepType: string;
-  message: string;
-  name?: string;
-  stack?: string;
-};
+import { StepExecutionError } from "./errors";
 
 export type ExecutionSummary = {
   ok: boolean;
