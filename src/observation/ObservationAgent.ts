@@ -38,4 +38,7 @@ export class ObservationAgent {
   getObservations() {
     return this.observations;
   }
+  reset() {
+    this.observations = [];
+  }
 }

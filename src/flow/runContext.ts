@@ -5,6 +5,7 @@ import { randomUUID } from "crypto";
 export type FlowRunContext = {
   runId: string;
   baseDir: string;
+  attempts: number;
 };
 
 export function createRunContext(): FlowRunContext {
@@ -13,5 +14,5 @@ export function createRunContext(): FlowRunContext {
 
   mkdirSync(join(baseDir, "steps"), { recursive: true });
 
-  return { runId, baseDir };
+  return { runId, baseDir, attempts: 0 };
 }
