@@ -1,24 +1,43 @@
 export type FlowCriticality = "blocking" | "warning" | "info";
 
+type BaseStep = {
+  type: string;
+  intent?: string;
+};
+
+export type GotoStep = BaseStep & {
+  type: "goto";
+  url?: string;
+  path?: string;
+};
+
+export type ClickStep = BaseStep & {
+  type: "click";
+  selector: string;
+  text?: string;
+};
+
+export type AssertTextStep = BaseStep & {
+  type: "assertText";
+  text: string;
+};
+
+export type AssertVisibleStep = BaseStep & {
+  type: "assertVisible";
+  selector: string;
+  text?: string;
+};
+export type WaitStep = BaseStep & {
+  type: "wait";
+  ms: number;
+};
+
 export type FlowStep =
-  | {
-      type: "goto";
-      url: string;
-      path?: string;
-    }
-  | {
-      type: "click";
-      selector: string;
-      intent?: string;
-    }
-  | {
-      type: "assertText";
-      text: string;
-    }
-  | {
-      type: "wait";
-      ms: number;
-    };
+  | GotoStep
+  | ClickStep
+  | AssertTextStep
+  | AssertVisibleStep
+  | WaitStep;
 
 export type FlowDefinition = {
   name: string;

@@ -28,10 +28,29 @@ export class ObservationAgent {
   }
 
   async captureDom(page: Page) {
-    const html = await page.content();
+    const snapshot = await page.evaluate(() => {
+      const pick = (el: Element | null, limit = 3000) =>
+        el ? el.outerHTML.slice(0, limit) : null;
+
+      const appRoot =
+        document.querySelector("#root") ||
+        document.querySelector("#__next") ||
+        document.querySelector("main") ||
+        document.body;
+
+      return {
+        header: pick(document.querySelector("header")),
+        footer: pick(document.querySelector("footer")),
+        main: pick(document.querySelector("main")),
+        appRoot: pick(appRoot, 4000),
+        title: document.title,
+        url: location.href,
+      };
+    });
+
     this.observations.push({
       type: "dom",
-      html: html.slice(0, 5000),
+      snapshot,
     });
   }
 

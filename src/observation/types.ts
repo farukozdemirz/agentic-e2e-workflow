@@ -12,7 +12,14 @@ export type NetworkError = {
 
 export type DomSnapshot = {
   type: "dom";
-  html: string;
+  snapshot: {
+    header: string | null;
+    footer: string | null;
+    main: string | null;
+    appRoot: string | null;
+    title: string;
+    url: string;
+  };
 };
 
 export type Observation = ConsoleError | NetworkError | DomSnapshot;
