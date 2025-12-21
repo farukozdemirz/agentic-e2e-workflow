@@ -60,17 +60,12 @@ export type WaitForVisibleStep = BaseStep & {
 
 export type ConfirmAfterClickStep = {
   type: "confirmAfterClick";
+  waitForStateReady?: string;
   expectApi?: {
     urlContains: string;
     status?: number;
     timeoutMs?: number;
   };
-  expectVisible?: {
-    selector: string;
-    text?: string;
-    timeoutMs?: number;
-  };
-  expectDomMutation?: boolean;
 };
 
 export type AssertionSeverity = "hard" | "soft";

@@ -21,10 +21,6 @@ export const nadirgoldAddToCartFlow: FlowDefinition = {
         urlContains: "/basket/add",
         status: 200,
       },
-      expectVisible: {
-        selector: "a",
-        text: "Sepete Git",
-      },
     },
     { type: "assertState", state: STATES.QUICKCART_OPEN, severity: "hard" },
     { type: "assertState", state: STATES.CART_NOT_EMPTY, severity: "hard" },

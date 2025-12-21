@@ -7,6 +7,7 @@ import { StepExecutionError } from "./errors";
 import { resolveSemanticClick } from "../interaction/resolveSemanticClick";
 import { logger } from "../infra/logger";
 import { resolveState } from "../assertions/states/StateRegistry";
+import { AssertionResult } from "../assertions/resolvers/AssertionResult";
 
 export async function executeStepWithArtifacts(
   page: Page,
@@ -54,68 +55,59 @@ export async function executeStepWithArtifacts(
 
       case "confirmAfterClick": {
         const typedStep = step as ConfirmAfterClickStep;
-        const confirmations: Promise<boolean>[] = [];
 
         if (typedStep.expectApi) {
-          confirmations.push(
-            page
-              .waitForResponse(
-                (res) => {
-                  if (!res.url().includes(typedStep.expectApi!.urlContains))
-                    return false;
-                  if (
-                    typedStep.expectApi!.status &&
-                    res.status() !== typedStep.expectApi!.status
-                  )
-                    return false;
-                  return true;
-                },
-                { timeout: typedStep.expectApi.timeoutMs ?? 10000 }
-              )
-              .then(() => true)
-              .catch(() => false)
+          await page.waitForResponse(
+            (res) => {
+              if (!res.url().includes(typedStep.expectApi!.urlContains)) {
+                return false;
+              }
+              if (
+                typedStep.expectApi!.status &&
+                res.status() !== typedStep.expectApi!.status
+              ) {
+                return false;
+              }
+              return true;
+            },
+            {
+              timeout: typedStep.expectApi.timeoutMs ?? 10000,
+            }
           );
         }
+        // if (typedStep.waitForStateReady) {
+        //   const stateHandler = resolveState(typedStep.waitForStateReady);
 
-        if (typedStep.expectVisible) {
-          confirmations.push(
-            page
-              .locator(typedStep.expectVisible.selector)
-              .filter(
-                typedStep.expectVisible.text
-                  ? { hasText: typedStep.expectVisible.text }
-                  : undefined
-              )
-              .first()
-              .waitFor({
-                state: "visible",
-                timeout: typedStep.expectVisible.timeoutMs ?? 10000,
-              })
-              .then(() => true)
-              .catch(() => false)
-          );
-        }
+        //   if (!stateHandler) {
+        //     throw new StepExecutionError({
+        //       stepIndex: index,
+        //       stepType: step.type,
+        //       message: `Unknown state: ${typedStep.waitForStateReady}`,
+        //     });
+        //   }
 
-        if (typedStep.expectDomMutation) {
-          confirmations.push(
-            page
-              .waitForFunction(() => {
-                return document.body.dataset.__mutation === "true";
-              })
-              .then(() => true)
-              .catch(() => false)
-          );
-        }
+        //   const timeout = typedStep.expectApi?.timeoutMs ?? 8000;
+        //   const start = Date.now();
+        //   let lastResult: AssertionResult | null = null;
 
-        const results = await Promise.all(confirmations);
+        //   while (Date.now() - start < timeout) {
+        //     lastResult = await stateHandler(page);
 
-        if (!results.some(Boolean)) {
-          throw new StepExecutionError({
-            stepIndex: index,
-            stepType: step.type,
-            message: "Post-click confirmation failed",
-          });
-        }
+        //     if (lastResult.ok) {
+        //       break;
+        //     }
+
+        //     await page.waitForTimeout(200);
+        //   }
+
+        //   if (!lastResult?.ok) {
+        //     throw new StepExecutionError({
+        //       stepIndex: index,
+        //       stepType: step.type,
+        //       message: `State did not become ready: ${typedStep.waitForStateReady}`,
+        //     });
+        //   }
+        // }
 
         break;
       }
@@ -163,7 +155,6 @@ export async function executeStepWithArtifacts(
         }
 
         const result = await handler(page);
-
         if (!result.ok) {
           if (step.severity === "hard") {
             throw new StepExecutionError({

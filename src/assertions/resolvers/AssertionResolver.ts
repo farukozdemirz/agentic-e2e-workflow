@@ -10,7 +10,11 @@ export class AssertionResolver {
       try {
         const ok = await strategy.check(page);
         if (ok) {
-          return { ok: true, strategy: strategy.name };
+          return {
+            ok: true,
+            strategy: strategy.name,
+            ...(strategy?.getMeta && { meta: strategy.getMeta?.() }),
+          };
         }
       } catch (err) {
         console.error(`Strategy ${strategy.name} failed`, err);
