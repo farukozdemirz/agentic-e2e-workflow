@@ -75,6 +75,14 @@ export class ObservationAgent {
       meta: input.meta,
     });
   }
+
+  //prettier-ignore
+  recordAssertion(input: Omit<Extract<Observation, { type: "assertion" }>, "type">) {
+    this.observations.push({
+      type: "assertion",
+      ...input,
+    });
+  }
   getObservations() {
     return this.observations;
   }

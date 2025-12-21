@@ -6,25 +6,29 @@ export class AssertionResolver {
   constructor(private strategies: AssertionStrategy[]) {}
 
   async resolve(page: Page): Promise<AssertionResult> {
-    for (const strategy of this.strategies) {
-      try {
-        const ok = await strategy.check(page);
-        if (ok) {
-          return {
-            ok: true,
-            strategy: strategy.name,
-            ...(strategy?.getMeta && { meta: strategy.getMeta?.() }),
-          };
-        }
-      } catch (err) {
-        console.error(`Strategy ${strategy.name} failed`, err);
+    const total = this.strategies.length;
+
+    for (let i = 0; i < total; i++) {
+      const strategy = this.strategies[i];
+      const ok = await strategy.check(page);
+
+      if (ok) {
+        return {
+          ok: true,
+          strategy: strategy.name,
+          strategyIndex: i,
+          totalStrategies: total,
+          ...(strategy?.getMeta && { meta: strategy.getMeta?.() }),
+        };
       }
     }
 
     return {
       ok: false,
       strategy: "none",
-      details: "All assertion strategies failed",
+      strategyIndex: total,
+      totalStrategies: total,
+      details: `Failed strategies: ${this.strategies.map((strategy) => strategy.name).join(", ")}`,
     };
   }
 }

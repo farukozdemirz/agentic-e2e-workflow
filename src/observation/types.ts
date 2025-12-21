@@ -36,9 +36,26 @@ export type RecordWarning = {
   meta?: Record<string, unknown>;
 };
 
+export type Assertion = {
+  type: "assertion";
+  state: string;
+  ok: boolean;
+  severity?: "hard" | "soft";
+  strategy: string;
+  strategyIndex?: number;
+  totalStrategies?: number;
+  confidence?: number;
+  details?: string;
+  meta?: {
+    attempts?: number;
+    durationMs?: number;
+  };
+};
+
 export type Observation =
   | ConsoleError
   | NetworkError
   | DomSnapshot
   | ApiWait
-  | RecordWarning;
+  | RecordWarning
+  | Assertion;

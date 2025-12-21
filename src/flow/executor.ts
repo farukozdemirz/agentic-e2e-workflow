@@ -7,7 +7,7 @@ import { StepExecutionError } from "./errors";
 import { resolveSemanticClick } from "../interaction/resolveSemanticClick";
 import { logger } from "../infra/logger";
 import { resolveState } from "../assertions/states/StateRegistry";
-import { AssertionResult } from "../assertions/resolvers/AssertionResult";
+import { scoreAssertionConfidence } from "../assertions/scoring/scoreAssertionConfidence";
 
 export async function executeStepWithArtifacts(
   page: Page,
@@ -171,6 +171,12 @@ export async function executeStepWithArtifacts(
           }
         }
 
+        observationAgent.recordAssertion({
+          state: step.state,
+          confidence: scoreAssertionConfidence(result),
+          ...result,
+        });
+
         break;
       }
       case "wait":
@@ -178,11 +184,7 @@ export async function executeStepWithArtifacts(
         break;
     }
 
-    // DOM snapshot
     await observationAgent.captureDom(page);
-    // Artifact write
-
-    // await page.waitForTimeout(500);
     await writeStepArtifacts(page, baseDir, step, index);
   } catch (error: any) {
     throw new StepExecutionError({

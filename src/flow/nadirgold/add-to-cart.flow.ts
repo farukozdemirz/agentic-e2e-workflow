@@ -9,7 +9,7 @@ export const nadirgoldAddToCartFlow: FlowDefinition = {
   steps: [
     {
       type: "goto",
-      path: "/nadirgold-20-gr-kulce-altin-2",
+      path: "/nadirgold-1-gr-kulce-altin",
     },
     {
       type: "click",
