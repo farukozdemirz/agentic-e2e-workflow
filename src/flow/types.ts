@@ -1,3 +1,5 @@
+import { STATES } from "../constants";
+
 export type FlowCriticality = "blocking" | "warning" | "info";
 
 type BaseStep = {
@@ -76,10 +78,9 @@ export type AssertionSeverity = "hard" | "soft";
 export type AssertStateStep = {
   type: "assertState";
   state:
-    | "cart-not-empty"
-    | "quickcart-open"
-    | "cart-count-increased"
-    | "total-amount-positive";
+    | typeof STATES.CART_NOT_EMPTY
+    | typeof STATES.QUICKCART_OPEN
+    | typeof STATES.TOTAL_AMOUNT_POSITIVE;
   severity?: AssertionSeverity;
 };
 

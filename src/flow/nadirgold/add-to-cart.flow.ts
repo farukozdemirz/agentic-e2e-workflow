@@ -1,3 +1,4 @@
+import { STATES } from "../../constants";
 import { FlowDefinition } from "../types";
 
 export const nadirgoldAddToCartFlow: FlowDefinition = {
@@ -25,8 +26,12 @@ export const nadirgoldAddToCartFlow: FlowDefinition = {
         text: "Sepete Git",
       },
     },
-    { type: "assertState", state: "quickcart-open", severity: "hard" },
-    { type: "assertState", state: "cart-not-empty", severity: "hard" },
-    { type: "assertState", state: "total-amount-positive", severity: "soft" },
+    { type: "assertState", state: STATES.QUICKCART_OPEN, severity: "hard" },
+    { type: "assertState", state: STATES.CART_NOT_EMPTY, severity: "hard" },
+    {
+      type: "assertState",
+      state: STATES.TOTAL_AMOUNT_POSITIVE,
+      severity: "soft",
+    },
   ],
 };

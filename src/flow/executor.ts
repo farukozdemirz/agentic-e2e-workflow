@@ -6,7 +6,7 @@ import { getBaseUrl } from "../config/environment";
 import { StepExecutionError } from "./errors";
 import { resolveSemanticClick } from "../interaction/resolveSemanticClick";
 import { logger } from "../infra/logger";
-import { resolveState } from "../assertion/stateResolver";
+import { resolveState } from "../assertions/states/StateRegistry";
 
 export async function executeStepWithArtifacts(
   page: Page,
@@ -156,30 +156,30 @@ export async function executeStepWithArtifacts(
         });
         break;
       case "assertState": {
-        const severity = step.severity ?? "hard";
-        const result = await resolveState(page, step.state);
+        const handler = resolveState(step.state);
+
+        if (!handler) {
+          throw new Error(`Unknown assertion state: ${step.state}`);
+        }
+
+        const result = await handler(page);
 
         if (!result.ok) {
-          if (severity === "soft") {
+          if (step.severity === "hard") {
+            throw new StepExecutionError({
+              stepIndex: index,
+              stepType: step.type,
+              message: `State assertion failed: ${step.state} (${result.details})`,
+            });
+          } else {
             observationAgent.recordWarning({
               code: "ASSERT_STATE_SOFT_FAIL",
               message: `State assertion failed (soft): ${step.state}`,
               meta: { state: step.state, details: result.details },
             });
-            break;
           }
-
-          throw new StepExecutionError({
-            stepIndex: index,
-            stepType: step.type,
-            message: `State assertion failed: ${step.state} (${result.details})`,
-          });
         }
 
-        logger.info("Semantic state assertion passed", {
-          state: step.state,
-          severity,
-        });
         break;
       }
       case "wait":

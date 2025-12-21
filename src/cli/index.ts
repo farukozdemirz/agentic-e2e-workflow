@@ -1,4 +1,5 @@
 import "dotenv/config";
+import "../assertions/states";
 import { createLLMProvider } from "../ai";
 import { runSmoke } from "../browser";
 import { getFlow } from "../flow/registry";
@@ -244,7 +245,6 @@ function parseFlowName(args: string[]): string | null {
   }
   return flowName;
 }
-
 
 async function main() {
   const args = process.argv.slice(2);
