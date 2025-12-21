@@ -29,4 +29,16 @@ export type DomSnapshot = {
   };
 };
 
-export type Observation = ConsoleError | NetworkError | DomSnapshot | ApiWait;
+export type RecordWarning = {
+  type: "warning";
+  code: string;
+  message: string;
+  meta?: Record<string, unknown>;
+};
+
+export type Observation =
+  | ConsoleError
+  | NetworkError
+  | DomSnapshot
+  | ApiWait
+  | RecordWarning;

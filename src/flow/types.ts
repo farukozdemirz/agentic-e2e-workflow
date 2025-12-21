@@ -56,6 +56,33 @@ export type WaitForVisibleStep = BaseStep & {
   timeoutMs?: number;
 };
 
+export type ConfirmAfterClickStep = {
+  type: "confirmAfterClick";
+  expectApi?: {
+    urlContains: string;
+    status?: number;
+    timeoutMs?: number;
+  };
+  expectVisible?: {
+    selector: string;
+    text?: string;
+    timeoutMs?: number;
+  };
+  expectDomMutation?: boolean;
+};
+
+export type AssertionSeverity = "hard" | "soft";
+
+export type AssertStateStep = {
+  type: "assertState";
+  state:
+    | "cart-not-empty"
+    | "quickcart-open"
+    | "cart-count-increased"
+    | "total-amount-positive";
+  severity?: AssertionSeverity;
+};
+
 export type FlowStep =
   | GotoStep
   | ClickStep
@@ -63,7 +90,9 @@ export type FlowStep =
   | AssertVisibleStep
   | WaitStep
   | WaitForApiStep
-  | WaitForVisibleStep;
+  | WaitForVisibleStep
+  | ConfirmAfterClickStep
+  | AssertStateStep;
 
 export type FlowDefinition = {
   name: string;

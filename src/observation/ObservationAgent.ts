@@ -63,6 +63,18 @@ export class ObservationAgent {
     });
   }
 
+  recordWarning(input: {
+    code: string;
+    message: string;
+    meta?: Record<string, unknown>;
+  }) {
+    this.observations.push({
+      type: "warning",
+      code: input.code,
+      message: input.message,
+      meta: input.meta,
+    });
+  }
   getObservations() {
     return this.observations;
   }

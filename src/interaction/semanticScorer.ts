@@ -28,7 +28,7 @@ export function scoreCandidate(
   }
 
   const intentKeywords: Record<SemanticIntent, string[]> = {
-    "add-to-cart": ["sepete ekle", "add to cart"],
+    "add-to-cart": ["sepete ekle", "add to cart", "fiziki altına çevir"],
     "go-to-cart": ["sepete git", "view cart"],
     checkout: ["ödeme", "checkout"],
     login: ["giriş", "login"],

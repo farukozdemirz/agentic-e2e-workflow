@@ -245,10 +245,6 @@ function parseFlowName(args: string[]): string | null {
   return flowName;
 }
 
-function extractRunIdFromBaseDir(baseDir: string) {
-  const parts = baseDir.split("/");
-  return parts[parts.length - 1];
-}
 
 async function main() {
   const args = process.argv.slice(2);
@@ -268,6 +264,8 @@ async function main() {
     return;
   }
 
+  console.log("Agentic E2E Workflow CLI started");
+
   if (args[0] === "llm" && args[1] === "ping") {
     const provider = createLLMProvider();
 
@@ -285,8 +283,6 @@ async function main() {
   if (args[0] === "run" && args[1] === "--flow") {
     await runFlowCommand(args);
   }
-
-  console.log("Agentic E2E Workflow CLI started");
 }
 
 function inferFailedStepIndex(err: unknown): number | null {

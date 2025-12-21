@@ -8,21 +8,25 @@ export const nadirgoldAddToCartFlow: FlowDefinition = {
   steps: [
     {
       type: "goto",
-      path: "/nadirgold-100-gr-gumus-kulce",
+      path: "/nadirgold-20-gr-kulce-altin-2",
     },
     {
       type: "click",
       intent: "add-to-cart",
     },
     {
-      type: "waitForApi",
-      urlContains: "/basket/add",
-      status: 200,
+      type: "confirmAfterClick",
+      expectApi: {
+        urlContains: "/basket/add",
+        status: 200,
+      },
+      expectVisible: {
+        selector: "a",
+        text: "Sepete Git",
+      },
     },
-    {
-      type: "waitForVisible",
-      selector: "a",
-      text: "Sepete Git",
-    },
+    { type: "assertState", state: "quickcart-open", severity: "hard" },
+    { type: "assertState", state: "cart-not-empty", severity: "hard" },
+    { type: "assertState", state: "total-amount-positive", severity: "soft" },
   ],
 };
