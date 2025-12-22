@@ -17,6 +17,8 @@ import { simpleRetry } from "../retry/healing/simpleRetry";
 import { decideRetry } from "../retry/retryPolicy";
 import { ExecutionSummary } from "../flow/executionTypes";
 import { StepExecutionError } from "../flow/errors";
+import { EscalationAgent } from "../reasoning/escalation/EscalationAgent";
+import { shouldEscalate } from "../reasoning/escalation/shouldEscalate";
 
 const helpContent = `
 agentic-e2e-workflow (qg)
@@ -46,6 +48,7 @@ type FlowRunDeps = {
   browserManager: BrowserManager;
   observationAgent: ObservationAgent;
   reasoningAgent: ReasoningAgent;
+  escalationAgent: EscalationAgent;
 };
 const runFlowCommand = async (args: string[]) => {
   const flowName = parseFlowName(args);
@@ -63,6 +66,7 @@ const runFlowCommand = async (args: string[]) => {
     browserManager: new BrowserManager(),
     observationAgent: new ObservationAgent(),
     reasoningAgent: new ReasoningAgent(createLLMProvider()),
+    escalationAgent: new EscalationAgent(createLLMProvider()),
   };
 
   const page = await deps.browserManager.launch({ headless });
@@ -116,6 +120,29 @@ const runFlowCommand = async (args: string[]) => {
     console.log(
       `🧠 Post-retry result: ${reasoningResult.status} (confidence: ${reasoningResult.confidence})`
     );
+
+    const assertions = deps.observationAgent
+      .getObservations()
+      .filter((o) => o.type === "assertion");
+
+    if (shouldEscalate({ assertions, retryCount: attempts })) {
+      const escalation = await deps.escalationAgent.evaluate({
+        flow,
+        assertions,
+      });
+
+      deps.observationAgent.recordEscalation({
+        ...escalation,
+        applied: true,
+        override: reasoningResult?.status
+          ? escalation.status !== reasoningResult.status
+          : true,
+      });
+
+      console.log(`Overriding reasoning result with escalation`);
+
+      reasoningResult = escalation;
+    }
 
     return true;
   } finally {

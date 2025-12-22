@@ -52,10 +52,20 @@ export type Assertion = {
   };
 };
 
+export type EscalationObservation = {
+  type: "ai-escalation";
+  applied: boolean;
+  finalStatus: "ok" | "degraded" | "broken";
+  confidence: number;
+  reason: string;
+  override: boolean;
+};
+
 export type Observation =
   | ConsoleError
   | NetworkError
   | DomSnapshot
   | ApiWait
   | RecordWarning
-  | Assertion;
+  | Assertion
+  | EscalationObservation;

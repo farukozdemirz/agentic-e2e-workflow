@@ -174,6 +174,7 @@ export async function executeStepWithArtifacts(
         observationAgent.recordAssertion({
           state: step.state,
           confidence: scoreAssertionConfidence(result),
+          severity: step.severity,
           ...result,
         });
 

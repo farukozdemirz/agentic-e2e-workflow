@@ -1,5 +1,5 @@
 import { Page } from "playwright";
-import { Observation } from "./types";
+import { EscalationObservation, Observation } from "./types";
 
 export class ObservationAgent {
   private observations: Observation[] = [];
@@ -80,9 +80,29 @@ export class ObservationAgent {
   recordAssertion(input: Omit<Extract<Observation, { type: "assertion" }>, "type">) {
     this.observations.push({
       type: "assertion",
+      severity: input.severity,
       ...input,
     });
   }
+
+  recordEscalation(input: {
+    status: "ok" | "degraded" | "broken";
+    confidence: number;
+    reason: string;
+    override: boolean;
+  }) {
+    const observation: EscalationObservation = {
+      type: "ai-escalation",
+      applied: true,
+      finalStatus: input.status,
+      confidence: input.confidence,
+      reason: input.reason,
+      override: input.override,
+    };
+
+    this.observations.push(observation);
+  }
+  
   getObservations() {
     return this.observations;
   }
