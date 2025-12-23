@@ -75,39 +75,6 @@ export async function executeStepWithArtifacts(
             }
           );
         }
-        // if (typedStep.waitForStateReady) {
-        //   const stateHandler = resolveState(typedStep.waitForStateReady);
-
-        //   if (!stateHandler) {
-        //     throw new StepExecutionError({
-        //       stepIndex: index,
-        //       stepType: step.type,
-        //       message: `Unknown state: ${typedStep.waitForStateReady}`,
-        //     });
-        //   }
-
-        //   const timeout = typedStep.expectApi?.timeoutMs ?? 8000;
-        //   const start = Date.now();
-        //   let lastResult: AssertionResult | null = null;
-
-        //   while (Date.now() - start < timeout) {
-        //     lastResult = await stateHandler(page);
-
-        //     if (lastResult.ok) {
-        //       break;
-        //     }
-
-        //     await page.waitForTimeout(200);
-        //   }
-
-        //   if (!lastResult?.ok) {
-        //     throw new StepExecutionError({
-        //       stepIndex: index,
-        //       stepType: step.type,
-        //       message: `State did not become ready: ${typedStep.waitForStateReady}`,
-        //     });
-        //   }
-        // }
 
         break;
       }

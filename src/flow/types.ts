@@ -5,6 +5,10 @@ export type FlowCriticality = "blocking" | "warning" | "info";
 type BaseStep = {
   type: string;
   intent?: string;
+  retry?: {
+    attempts: 3;
+    delayMs: 600;
+  };
 };
 
 export type GotoStep = BaseStep & {
@@ -58,7 +62,7 @@ export type WaitForVisibleStep = BaseStep & {
   timeoutMs?: number;
 };
 
-export type ConfirmAfterClickStep = {
+export type ConfirmAfterClickStep = BaseStep & {
   type: "confirmAfterClick";
   waitForStateReady?: string;
   expectApi?: {
@@ -70,7 +74,7 @@ export type ConfirmAfterClickStep = {
 
 export type AssertionSeverity = "hard" | "soft";
 
-export type AssertStateStep = {
+export type AssertStateStep = BaseStep & {
   type: "assertState";
   state:
     | typeof STATES.CART_NOT_EMPTY

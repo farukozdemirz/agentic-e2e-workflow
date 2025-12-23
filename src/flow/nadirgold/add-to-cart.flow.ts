@@ -23,7 +23,7 @@ export const nadirgoldAddToCartFlow: FlowDefinition = {
       },
     },
     { type: "assertState", state: STATES.QUICKCART_OPEN, severity: "hard" },
-    { type: "assertState", state: STATES.CART_NOT_EMPTY, severity: "soft" },
+    { type: "assertState", state: STATES.CART_NOT_EMPTY, severity: "hard" },
     {
       type: "assertState",
       state: STATES.TOTAL_AMOUNT_POSITIVE,
